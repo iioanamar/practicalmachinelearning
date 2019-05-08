@@ -1,7 +1,13 @@
-# Practical Machine Learning Class: Peer-Graded Assignment
+---
+title: "Practical Machine Learning Course Project"
+author: "Ioana Marinica"
+date: "5/8/2019"
+output: html_document
+---
 
-## Ioana Marinica
-
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
 
 ### Task description
 
@@ -18,7 +24,7 @@ library(doParallel)
 library(randomForest)
 
 fileUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
-download.file(fileUrl, destfile = "~/Documents/RWork/Data science specialization/Machine Learning/practicalmachinelearning/TrainingData.csv", method = "curl")
+download.file(fileUrl, destfile = "~/Documents/RWork/Data science specialization/Machine Learning/TrainingData.csv", method = "curl")
 
 data <- read.csv("TrainingData.csv", na.strings = c(""))
 
