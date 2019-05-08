@@ -1,0 +1,72 @@
+# Practical Machine Learning Class: Peer-Graded Assignment
+
+## Ioana Marinica
+
+
+### Task description
+
+One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. The goal of your project is to predict the manner in which they did the exercise.
+
+### Preprocessing
+
+Before procedding to build the model, the necessary packages as well as the data were loaded. We removed those variables with near zero variance and those with missing values. Lastly, we set the seed in order to ensure that the analysis is reproducible.
+
+```{r}
+library(caret)
+library(parallel)
+library(doParallel)
+library(randomForest)
+
+fileUrl <- "https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv"
+download.file(fileUrl, destfile = "~/Documents/RWork/Data science specialization/Machine Learning/practicalmachinelearning/TrainingData.csv", method = "curl")
+
+data <- read.csv("TrainingData.csv", na.strings = c(""))
+
+nsv <- nearZeroVar(data,saveMetrics=TRUE)
+data <- data[,!nsv$nzv]
+data <- data[,(colSums(is.na(data)) == 0)]
+data <- data[, -c(1:6)]
+
+set.seed(1222)
+
+```
+
+
+We also switch from model format to x/y syntax in order to increase model performance.
+
+```{r}
+x <- data[, -53]
+y <- data[,53]
+```
+
+Lastly, in the preprocessing step we also enable parallel processing, which has a positive impact on the speed of the training function.
+
+```{r}
+cluster <- makeCluster(detectCores() -1)
+registerDoParallel(cluster)
+```
+
+### Building the model
+
+We built a random forest model, which is best fit for noisy sensor data, and used 5-fold cross-validation resampling technique. The number of folds has been chosen so as to balance between bias and variability in the results, while at the same time maintaining a reasonable performance for the model. We reduced the number of trees from the default 500 to 200 since it proved increase performance while not reducing the accuracy of the predictions. The output indicated that the algorithm has **99% accuracy** and an estimated **out of sample error of 0.48%**.
+
+```{r}
+fitControl <- trainControl(method = "cv", number = 5, allowParallel = TRUE)
+
+modFit <- train(x, y, method = "rf", data = data, trControl = fitControl, ntree = 200, importance = T)
+
+stopCluster(cluster)
+registerDoSEQ()
+
+modFit
+confusionMatrix.train(modFit)
+modFit$finalModel
+```
+
+The plot below shows that the most important variables in the model are *yaw_belt*, *roll_belt* and *pitch_belt*.
+
+```{r}
+varImpPlot(modFit$finalModel, type = 1, pch = 19, col = 1, cex = 1, main = "Variable Importance")
+```
+
+
